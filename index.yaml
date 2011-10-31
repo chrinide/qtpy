@@ -1,0 +1,24 @@
+indexes:
+
+- kind: BotMoves
+  properties:
+  - name: state
+  - name: played
+
+- kind: BotMoves
+  properties:
+  - name: state
+  - name: winp
+    direction: desc
+  - name: drawp
+    direction: desc
+  - name: played
+
+- kind: BotMoves
+  properties:
+  - name: state
+  - name: drawp
+    direction: desc
+  - name: winp
+    direction: desc
+  - name: played
