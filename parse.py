@@ -20,7 +20,8 @@ class Parse:
       move = Move(player + 1, weight, int(m[0]), int(m[1]))
       if m[0] == '0':
         # A collapse:
-        # Next move should be the player's square markings unless this is the last move in the game
+        # Next move should be the player's square markings unless
+        # this is the last move in the game
         # Don't switch player or increment weight
         pass
       else:

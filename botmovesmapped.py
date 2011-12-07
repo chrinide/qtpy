@@ -8,7 +8,8 @@ import cgi
 from google.appengine.ext import db
 
 class BotMovesMapped(db.Model):
-  """ Stores a flag for each state where all valid moves have been played through """
+  """ Stores a flag for each state where all valid moves have been played
+  through """
   
   state = db.StringProperty()
   

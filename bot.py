@@ -8,17 +8,23 @@ class Bot:
   """ A learning bot the player competes with.
   
   Why machine learning instead of a predictive model?
-   - There aren't any existing projects to work off of in the field of QTTT AI.
-   - There is a paper describing optimal QTTT strategy, but it's over my head (http://arxiv.org/abs/1007.3601).
+   - There aren't any existing projects to work off of
+     in the field of QTTT AI.
+   - There is a paper describing optimal QTTT strategy, but it's
+     over my head. (http://arxiv.org/abs/1007.3601)
    
-   The bot favors moves that don't result in a loss and tries to make sure
-   unpopular paths get taken to increase its collection of outcomes.
+  The bot favors moves that don't result in a loss and tries to make sure
+  unpopular paths get taken to increase its collection of outcomes.
    
   The BotMoves class contains the interface to the DB.
   """
   
   @staticmethod
-  def noise_factor(): return 10 # Number of times to play the target move in a row before trying something else
+  def noise_factor():
+    """ Number of times to play the target move in a row before trying
+    something else """
+    
+    return 10 
   
   @staticmethod
   def play_move(state, difficulty):
@@ -58,12 +64,14 @@ class Bot:
         target = states[0]
       # Orient move according to current state
       target_ply = BotMoves.plyable(target.state + '/' + target.move)
-      move_ply = BotMoves.plyable(target.move)
-      for key in BotMoves._valid_keys:
-        k0 = ('-%s'%key) if key else None
-        move = BotMoves.searchable(BotMoves.translate(move_ply, k0))
-        if BotMoves.translate(target_ply, key) == BotMoves.plyable(s + '/' + move): break
-          
+      found = False
+      for m in state.get_valid_moves():
+        move = m
+        for key in BotMoves._valid_keys:
+          if BotMoves.translate(target_ply, key) == \
+                BotMoves.plyable(s + '/' + move):
+            found = True; break
+        if found: break
     # Play determined move
     state.step(Move(2, weight, move[0], move[1]))
     # Perform another move if we just played a collapse
@@ -86,14 +94,15 @@ class Bot:
     if not BotMovesMapped.has(s):
       # Check for collapse
       if state.cycle_squares:
-        from state import State
         # Append another valid move to the move string
         all = []
         for move in valid:
           state.step(Move(2, weight, move[0], move[1]))
-          if state.outcome: all.append(move)
+          if state.outcome:
+            all.append(move)
           else:
-            for a in state.get_valid_moves(): all.append('%s/%s'%(move,a))
+            for a in state.get_valid_moves():
+              all.append('%s/%s'%(move,a))
           state.unstep()
         valid = all
       # Look for all found moves or any variations in the DB
@@ -128,21 +137,5 @@ class Bot:
         states.append([ '/'.join(move_list), move ])
     # Update the DB with the outcome
     for state in states:
-      BotMoves.update_state(state[0], state[1], game.outcome) # Update state & move outcome possibilities
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      # Update state & move outcome possibilities
+      BotMoves.update_state(state[0], state[1], game.outcome)

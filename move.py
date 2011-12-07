@@ -25,11 +25,14 @@ class Move:
     type = None
     sq1 = int(sq1)
     sq2 = int(sq2)
-    if sq1 and sq2 and sq1 == sq2: # Classic move in last remaining square (eg 11, 22, 33)
+    # Classic move in last remaining square (eg 11, 22, 33)
+    if sq1 and sq2 and sq1 == sq2: 
       type = CLASSIC
-    elif sq1 and sq2: # Spooky move (12, 23, 45)
+    # Spooky move (12, 23, 45)
+    elif sq1 and sq2: 
       type = SPOOKY
-    elif sq1 == 0 and sq2: # Collapse move (01, 02, 03)
+    # Collapse move (01, 02, 03)
+    elif sq1 == 0 and sq2:
       type = COLLAPSE
     if not type:
       raise Exception('Invalid move data')

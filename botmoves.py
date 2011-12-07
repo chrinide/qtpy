@@ -9,17 +9,36 @@ from google.appengine.ext import db
 
 class BotMoves(db.Model):
   """ Interface for database of bot moves """
-  
-  state = db.StringProperty()                         # State of the game before the bot's move is made in standard notation
-  move = db.StringProperty()                          # Bot's move in standard notation
-  played = db.IntegerProperty(default=1)              # Number of games the move has been played in
-  wins = db.IntegerProperty(default=0)                # Number of games won using this move
-  losses = db.IntegerProperty(default=0)              # Number of games lost using this move
-  draws = db.IntegerProperty(default=0)               # Number of games drawn using this move
-  played_in_sequence = db.IntegerProperty(default=1)  # Number of times in-a-row this move has been played
-  winp = db.FloatProperty(default=0.0)                # Probability of win
-  lossp = db.FloatProperty(default=0.0)               # Probabilty of loss
-  drawp = db.FloatProperty(default=0.0)               # Probability of draw
+
+  # State of the game before the bot's move is made in standard notation
+  state = db.StringProperty()
+
+  # Bot's move in standard notation
+  move = db.StringProperty()                          
+
+  # Number of games the move has been played in
+  played = db.IntegerProperty(default=1)              
+
+  # Number of games won using this move
+  wins = db.IntegerProperty(default=0)                
+
+  # Number of games lost using this move
+  losses = db.IntegerProperty(default=0)              
+
+  # Number of games drawn using this move
+  draws = db.IntegerProperty(default=0)               
+
+  # Number of times in-a-row this move has been played
+  played_in_sequence = db.IntegerProperty(default=1)  
+
+  # Probability of win
+  winp = db.FloatProperty(default=0.0)                
+
+  # Probabilty of loss
+  lossp = db.FloatProperty(default=0.0)               
+
+  # Probability of draw
+  drawp = db.FloatProperty(default=0.0)               
   
   # Square number translation tables
   _rot90 =  [ 7, 4, 1, 8, 5, 2, 9, 6, 3 ]
@@ -38,7 +57,9 @@ class BotMoves(db.Model):
   
   @staticmethod
   def update_state(state, move, outcome):
-    """ Update (or create) outcome probabilities for a game state and move combo
+    """ Update (or create) outcome probabilities for a game state
+    and move combo
+    
     Arguments:
       state and move: standard notation game strings
       outcome: array of player scores [ player, bot ]
@@ -75,7 +96,14 @@ class BotMoves(db.Model):
       if outcome == 1: w = 1
       elif outcome == 0: d = 1
       else: l = 1
-      game = BotMoves(state=state,move=move,wins=w,draws=d,losses=l,winp=float(w),drawp=float(d),lossp=float(l))
+      game = BotMoves(state=state,
+                      move=move,
+                      wins=w,
+                      draws=d,
+                      losses=l,
+                      winp=float(w),
+                      drawp=float(d),
+                      lossp=float(l))
       game.put()
     # Add mapped flag if all valid moves have been played
     from botmovesmapped import BotMovesMapped
@@ -138,17 +166,18 @@ class BotMoves(db.Model):
     
     Arguments:
       state: game string in standard notation
-      move: one or two game moves in standard notation (two moves in the case that the
-            the first move is a collapse)
+      move: one or two game moves in standard notation (two moves in the
+            case that the the first move is a collapse)
       outcome: an integer where -1 = bot loss, 0 = draw, 1 = bot win
     
     Returns an array
     [ 0: the game records in the DB,
-      1: the key used to transform the supplied state into the variation found in the DB ]
+      1: the key used to transform the supplied state into the
+         variation found in the DB ]
     
-    If key is None, then the game was stored in the database in the same format supplied
-    Key is a string consisting of any of these (although some combinations are not
-    supported because they are redundant)
+    If key is None, then the game was stored in the database in the same
+    format supplied Key is a string consisting of any of these (although
+    some combinations are not supported because they are redundant)
       0: The state was rotated 90 degrees
       1: The state was rotated 180 degrees
       2: The state was rotated 270 degrees
@@ -205,7 +234,8 @@ class BotMoves(db.Model):
                 if not games.count(1):
                   # Look for game flipped horizontally and rotated 90 degrees
                   k = '0h'
-                  games = get(t(a90, 'h'), t(m90, 'h') if m else None, outcome)
+                  games = get(t(a90, 'h'), t(m90, 'h')
+                              if m else None, outcome)
                   if not games.count(1): return None
     return [ games, k ]
   
@@ -214,18 +244,23 @@ class BotMoves(db.Model):
     """ Perform quick re-orientation on a movelist """
     
     if key == None: return state
-    return BotMoves.searchable(BotMoves.translate(BotMoves.plyable(state), key))
+    return BotMoves.searchable( \
+      BotMoves.translate( \
+        BotMoves.plyable(state), key))
   
   @staticmethod
   def fix(state, key):
     """ Perform quick un-re-orientation on a movelist """
     
     if key == None: return state
-    return BotMoves.searchable(BotMoves.translate(BotMoves.plyable(state), '-%s'%key if key[0] != '-' else key[1:]))
+    return BotMoves.searchable( \
+      BotMoves.translate( \
+        BotMoves.plyable(state), '-%s'%key if key[0] != '-' else key[1:]))
   
   @staticmethod
   def plyable(state):
-    """ Returns an array of tuples of the supplied game string [ (sq1, sq2), ... ]
+    """ Returns an array of tuples of the supplied game string
+    [ (sq1, sq2), ... ]
     
     Opposite of searchable(moves)
     
@@ -238,7 +273,8 @@ class BotMoves(db.Model):
   
   @staticmethod
   def searchable(moves):
-    """ Returns a standard notation string based on the supplied array of move tuples
+    """ Returns a standard notation string based on the supplied array of
+    move tuples
     
     Opposite of plyable
     """
@@ -249,7 +285,8 @@ class BotMoves(db.Model):
   
   @staticmethod
   def outcome(scores):
-    """ Returns integer describing the game outcome: -1 for player win, 0 for draw, 1 for bot win """
+    """ Returns integer describing the game outcome:
+    -1 for player win, 0 for draw, 1 for bot win """
     
     if scores[0] == scores[1]: return 0
     elif scores[0] > scores[1]: return -1

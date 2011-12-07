@@ -21,7 +21,8 @@ class Square:
     self.spookies = None
   
   def find_path(self, target=None, ignore=None):
-    """ Find a route to a square. If no square argument supplied, find path to self
+    """ Find a route to a square. If no square argument supplied, find
+    path to self
     Returns array of square #s if route is found
     Returns None otherwise
     """
