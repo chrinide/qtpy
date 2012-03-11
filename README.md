@@ -33,7 +33,10 @@ Go to http://localhost:8080 and play.
 
 # YAML Configuration
 
-db:  The connection URL to the moves database.  Required.
-host:  Hostname to bind to.  Defaults to 0.0.0.0.
-port:  Port num to bind to.  Defaults to 8080.
-debug:  Print debug info on server error.  Defaults to true.
+```db:```  The connection URL to the moves database.  Required.
+
+```host:```  Hostname to bind to.  Defaults to 0.0.0.0.
+
+```port:```  Port num to bind to.  Defaults to 8080.
+
+```debug:```  Print debug info on server error.  Defaults to true.
