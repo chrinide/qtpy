@@ -1,13 +1,13 @@
 CACHE MANIFEST
 
 # QTPy cache
-# Updated: 12/07/2011 @ 02:11
+# Updated: 03/11/2012 @ 01:59
 
 /
-/qtpy.css
-/qtpy.min.js
-/rules-cycle.png
-/rules-diverse.png
-/rules-entangled.png
-/rules-marks.png
-/rules-win.png
+/static/qtpy.css
+/static/qtpy.min.js
+/static/rules-cycle.png
+/static/rules-diverse.png
+/static/rules-entangled.png
+/static/rules-marks.png
+/static/rules-win.png

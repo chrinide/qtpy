@@ -1,44 +1,57 @@
 #!/usr/bin/env python
 #
-# QTPy Bot move database
+# Copyright (C) 2010-2012 John Driscoll <johnoliverdriscoll@gmail.com>
 #
-# John Driscoll
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import cgi
-from google.appengine.ext import db
 
-class BotMoves(db.Model):
+# QTPy Bot move database
+
+import elixir
+
+class BotMoves(elixir.Entity):
   """ Interface for database of bot moves """
 
   # State of the game before the bot's move is made in standard notation
-  state = db.StringProperty()
+  state = elixir.Field(elixir.String(), primary_key=True)
 
   # Bot's move in standard notation
-  move = db.StringProperty()                          
+  move = elixir.Field(elixir.String())
 
   # Number of games the move has been played in
-  played = db.IntegerProperty(default=1)              
+  played = elixir.Field(elixir.Integer(), default=1, index=True)
 
   # Number of games won using this move
-  wins = db.IntegerProperty(default=0)                
+  wins = elixir.Field(elixir.Integer(), default=0)
 
   # Number of games lost using this move
-  losses = db.IntegerProperty(default=0)              
+  losses = elixir.Field(elixir.Integer(), default=0)
 
   # Number of games drawn using this move
-  draws = db.IntegerProperty(default=0)               
+  draws = elixir.Field(elixir.Integer(), default=0)
 
   # Number of times in-a-row this move has been played
-  played_in_sequence = db.IntegerProperty(default=1)  
+  played_in_sequence = elixir.Field(elixir.Integer(), default=1)
 
   # Probability of win
-  winp = db.FloatProperty(default=0.0)                
+  winp = elixir.Field(elixir.Float(), default=0.0, index=True)
 
   # Probabilty of loss
-  lossp = db.FloatProperty(default=0.0)               
+  lossp = elixir.Field(elixir.Float(), default=0.0, index=True)
 
   # Probability of draw
-  drawp = db.FloatProperty(default=0.0)               
+  drawp = elixir.Field(elixir.Float(), default=0.0, index=True)
   
   # Square number translation tables
   _rot90 =  [ 7, 4, 1, 8, 5, 2, 9, 6, 3 ]
@@ -69,7 +82,7 @@ class BotMoves(db.Model):
     game = BotMoves.find_state(state, move)
     outcome = BotMoves.outcome(outcome)
     if game:
-      if game[0].count(2) > 1: # Dup!
+      if game[0].count() > 1: # Dup!
         # Use the most played move
         dups = []
         for game in game[0]: dups.append(game)
@@ -77,7 +90,7 @@ class BotMoves(db.Model):
         for i in range(1,len(dups)): dups[i].delete()
         game = dups[0]
       else:
-        game = game[0].fetch(1)[0]
+        game = game[0].one()
       game.played += 1
       if outcome == 1: game.wins += 1
       elif outcome == 0: game.draws += 1
@@ -89,33 +102,34 @@ class BotMoves(db.Model):
         game.played_in_sequence = 0
       else:
         game.played_in_sequence += 1
-      game.put()
+      elixir.session.commit()
+      # Add mapped flag if all valid moves have been played
+      from botmovesmapped import BotMovesMapped
+      if not BotMovesMapped.has(game.state):
+        from state import State
+        state = State(game.state)
+        if not Bot.get_missing_move(state):
+          BotMovesMapped(state=game.state)
+          elixir.session.commit()
     else:
       # Create new record
       w = d = l = 0
       if outcome == 1: w = 1
       elif outcome == 0: d = 1
       else: l = 1
-      game = BotMoves(state=state,
-                      move=move,
-                      wins=w,
-                      draws=d,
-                      losses=l,
-                      winp=float(w),
-                      drawp=float(d),
-                      lossp=float(l))
-      game.put()
-    # Add mapped flag if all valid moves have been played
-    from botmovesmapped import BotMovesMapped
-    if not BotMovesMapped.has(game.state):
-      from state import State
-      state = State(game.state)
-      if not Bot.get_missing_move(state):
-        BotMovesMapped(state=game.state).put()
+      BotMoves(state=state,
+               move=move,
+               wins=w,
+               draws=d,
+               losses=l,
+               winp=float(w),
+               drawp=float(d),
+               lossp=float(l))
+      elixir.session.commit()
   
   @staticmethod
   def translate(moves, key):
-    """ Translates a plyable move list based on the key """
+    """ Translates a pliable move list based on the key """
   
     if not key: return moves
     tables = BotMoves._table[key]
@@ -136,7 +150,7 @@ class BotMoves(db.Model):
     states = [state]
     my = BotMoves
     def t(state, k): return my.translate(state, k)
-    a = BotMoves.plyable(state)
+    a = BotMoves.pliable(state)
     t = BotMoves.translate
     s = BotMoves.searchable
     # Look for game rotated 90 degrees
@@ -155,7 +169,7 @@ class BotMoves(db.Model):
     states.append(s(t(a90, 'v')))
     # Look for game flipped horizontally and rotated 90 degrees
     states.append(s(t(a90, 'h')))
-    return my.all().filter('state IN', states)
+    return my.query.filter(my.state.in_(states))
   
   @staticmethod
   def find_state(state, move=None, outcome=None, key=None, my=None):
@@ -189,54 +203,54 @@ class BotMoves(db.Model):
     if not my: my = BotMoves
     def get(state, move=None, outcome=None):
       # Get helper: return query object for oriented state string
-      q = my.all().filter('state =', BotMoves.searchable(state))
-      if move: q.filter('move =', BotMoves.searchable(move))
+      q = my.query.filter_by(state=BotMoves.searchable(state))
+      if move: q.filter_by(move=BotMoves.searchable(move))
       if outcome:
-        if outcome == 1: q.filter('wins =', 1)
-        elif outcome == 0: q.filter('draws =', 1)
-        else: q.filter('losses =', 1)
+        if outcome == 1: q.filter_by(wins=1)
+        elif outcome == 0: q.filter_by(draws=1)
+        else: q.filter_by(losses=1)
       return q
     def t(state, k): return my.translate(state, k)
-    a = BotMoves.plyable(state)
-    m = BotMoves.plyable(move) if move else None
+    a = BotMoves.pliable(state)
+    m = BotMoves.pliable(move) if move else None
     # key provided?
     if key: return get(t(a,key),t(m,key),outcome)
     t = BotMoves.translate
     # Look for game
     k = None
     games = get(a, m, outcome)
-    if not games.count(1):
+    if not games.count():
       # Look for game rotated 90 degrees
       k = '0'
       a90 = t(a, k); m90 = t(m, k) if m else None
       games = get(a90, m90, outcome)
-      if not games.count(1):
+      if not games.count():
         # Look for game rotated 180 degrees
         k = '1'
         a180 = t(a90, '0'); m180 = t(m90, '0') if m else None
         games = get(a180, m180, outcome)
-        if not games.count(1):
+        if not games.count():
           # Look for game rotated 270 degrees
           k = '2'
           games = get(t(a180, '0'), t(m180, '0') if m else None, outcome)
-          if not games.count(1):
+          if not games.count():
             # Look for game flipped vertically
             k = 'v'
             games = get(t(a, k), t(m, k) if m else None, outcome)
-            if not games.count(1):
+            if not games.count():
               # Look for game flipped horizontally
               k = 'h'
               games = get(t(a, k), t(m, k) if m else None, outcome)
-              if not games.count(1):
+              if not games.count():
                 # Look for game flipped vertically and rotated 90 degrees
                 k = '0v'
                 games = get(t(a90, 'v'), t(m90, 'v') if m else None, outcome)
-                if not games.count(1):
+                if not games.count():
                   # Look for game flipped horizontally and rotated 90 degrees
                   k = '0h'
                   games = get(t(a90, 'h'), t(m90, 'h')
                               if m else None, outcome)
-                  if not games.count(1): return None
+                  if not games.count(): return None
     return [ games, k ]
   
   @staticmethod
@@ -246,7 +260,7 @@ class BotMoves(db.Model):
     if key == None: return state
     return BotMoves.searchable( \
       BotMoves.translate( \
-        BotMoves.plyable(state), key))
+        BotMoves.pliable(state), key))
   
   @staticmethod
   def fix(state, key):
@@ -255,10 +269,10 @@ class BotMoves(db.Model):
     if key == None: return state
     return BotMoves.searchable( \
       BotMoves.translate( \
-        BotMoves.plyable(state), '-%s'%key if key[0] != '-' else key[1:]))
+        BotMoves.pliable(state), '-%s'%key if key[0] != '-' else key[1:]))
   
   @staticmethod
-  def plyable(state):
+  def pliable(state):
     """ Returns an array of tuples of the supplied game string
     [ (sq1, sq2), ... ]
     
@@ -276,7 +290,7 @@ class BotMoves(db.Model):
     """ Returns a standard notation string based on the supplied array of
     move tuples
     
-    Opposite of plyable
+    Opposite of pliable
     """
     
     out = []

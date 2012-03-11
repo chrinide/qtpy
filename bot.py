@@ -1,8 +1,24 @@
 #!/usr/bin/env python
 #
-# QTPy Bot class
+# Copyright (C) 2011-2012 John Driscoll <johnoliverdriscoll@gmail.com>
 #
-# John Driscoll
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# QTPy Bot class
+
+import elixir
 
 class Bot:
   """ A learning bot the player competes with.
@@ -47,29 +63,29 @@ class Bot:
       games = BotMoves.find_states(s)
       if difficulty == 0:
         # Learning mode: get highest probability of a draw
-        games.order('-drawp').order('-winp').order('played')
-        target = games.fetch(1)[0]
+        games.order_by('-drawp').order_by('-winp').order_by('played')
+        target = games.one()
       elif difficulty == 1:
         # Challenge mode: get highest probability of a win
-        games.order('-winp').order('-drawp').order('played')
-        target = games.fetch(1)[0]
+        games.order_by('-winp').order_by('-drawp').order_by('played')
+        target = games.one()
       # Don't neglect unpopular moves
       if target.played_in_sequence == Bot.noise_factor():
         target.played_in_sequence = 0
-        target.put()
+        elixir.session.commit()
         # Soft sort to save DB exchanges
         states = [target]
         for game in games: states.append(game)
         states.sort(key=lambda state: state.played)
         target = states[0]
       # Orient move according to current state
-      target_ply = BotMoves.plyable(target.state + '/' + target.move)
+      target_ply = BotMoves.pliable(target.state + '/' + target.move)
       found = False
       for m in state.get_valid_moves():
         move = m
         for key in BotMoves._valid_keys:
           if BotMoves.translate(target_ply, key) == \
-                BotMoves.plyable(s + '/' + move):
+                BotMoves.pliable(s + '/' + move):
             found = True; break
         if found: break
     # Play determined move
