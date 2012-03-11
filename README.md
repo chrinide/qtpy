@@ -1,5 +1,6 @@
 Created in a week as part of my application to work at reddit.  QTPy is a
 machine-learning strategist and the first Quantum Tic-tac-toe playing bot.
+Now it's GPL'd.
 
 
 # Install
@@ -9,10 +10,12 @@ python-elixir packages.  In addition, you will need to set up a database
 supported by SQLAlchemy.
 
 Next, create a YAML config file that points to the database you created:
+
     echo "db: postgres://qtpy@localhost/qtpy" > config.yaml
 
 Now you'll have to create the tables.  Don't worry; it's easy.  Hack this
 into a terminal from inside the application directory:
+
     $ python
     >>> import yaml, elixir, botmoves, botmovesmapped
     >>> elixir.metadata.bind = yaml.load(file('config.yaml', 'r'))['db']
@@ -22,6 +25,7 @@ into a terminal from inside the application directory:
 If it seems like nothing happened, it succeeded.
 
 Now you should be ready to serve it up:
+
     $ python qtpy.py config.yaml
 
 Go to http://localhost:8080 and play.
