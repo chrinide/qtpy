@@ -1,7 +1,22 @@
 /*
- * QTPy Game code
+ * Copyright (C) 2010-2012 John Driscoll <johnoliverdriscoll@gmail.com>
  *
- * John Driscoll
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ * QTPy Game code
  *
  * Required:
  * state.js
@@ -250,11 +265,11 @@ jQuery(document).ready(function() {
       function insImg(el, url, title) {
         el.append('<img src="' + url + '" title="' + title + '">');
       }
-      if (!hasImg($marks)) insImg($marks, 'rules-marks.png', 'Spooky marks');
-      if (!hasImg($cycle)) insImg($cycle, 'rules-cycle.png', 'Cycle squares');
-      if (!hasImg($diverse)) insImg($diverse, 'rules-diverse.png', 'Cycle squares without mark diversity');
-      if (!hasImg($entangled)) insImg($entangled, 'rules-entangled.png', 'Entangled marks');
-      if (!hasImg($win)) insImg($win, 'rules-win.png', 'Tic-tac-toe');
+      if (!hasImg($marks)) insImg($marks, 'static/rules-marks.png', 'Spooky marks');
+      if (!hasImg($cycle)) insImg($cycle, 'static/rules-cycle.png', 'Cycle squares');
+      if (!hasImg($diverse)) insImg($diverse, 'static/rules-diverse.png', 'Cycle squares without mark diversity');
+      if (!hasImg($entangled)) insImg($entangled, 'static/rules-entangled.png', 'Entangled marks');
+      if (!hasImg($win)) insImg($win, 'static/rules-win.png', 'Tic-tac-toe');
     }
     
     function hideInfo() {
