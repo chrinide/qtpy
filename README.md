@@ -11,7 +11,7 @@ supported by SQLAlchemy.
 
 Next, create a YAML config file that points to the database you created:
 
-    echo "db: postgres://qtpy@localhost/qtpy" > config.yaml
+    $ echo "db: postgres://qtpy@localhost/qtpy" > config.yaml
 
 Now you'll have to create the tables.  Don't worry; it's easy.  Hack this
 into a terminal from inside the application directory:
